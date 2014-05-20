@@ -37,21 +37,21 @@
 
 <p>Дамы и господа, приготовьтесь к поворотному моменту в истории веб-разработки...</p>
 <p><em>[Барабанная дробь]</em></p>
-<p>Promises реализованы нативно в JavaScript!</p>
+<p>Promise'ы реализованы нативно в JavaScript!</p>
 <p><em>[Фейерверки, конфети, толпа ликует]</em></p>
 <p>Скорее всего, вы относитесь к одной из категорий:</p>
 
 <ul>
-  <li>Вы не до конца понимаете, что такое "promise" и как их использовать. <a href="#toc-async">В этом случае, начните отсюда</a></li>
-  <li>Вы используете Promises, но вас беспокоит, что все эти реализации имеют немного различный API. Хотите узнать как реализована официальная JavaScript версия? <a href="#toc-promise-terminology">В этом случае, начните отсюда</a></li>
-  <li>Вы хорошо разбираетесь в том, как работают promises. В этом случае переходите прямиком к <a href="#toc-api">API документации</a></li>
+  <li>Если вы не до конца понимаете, что такое promise'ы и как их использовать, тогда <a href="#toc-async">начните отсюда</a></li>
+  <li>Вы уже используете promise'ы, но вас беспокоит, что все реализации имеют немного различный API. Хотите узнать как реализована официальная JavaScript версия? <a href="#toc-promise-terminology">В этом случае, начните отсюда</a></li>
+  <li>Если же вы уже хорошо разбираетесь в том, как работают promise'ы, тогда переходите прямиком к <a href="#toc-api">API документации</a></li>
 </ul>
 
 <h2 id="toc-async">О чем речь?</h2>
 
-<p>JavaScript однозадачный, это значит, что два куска кода не могут выполняться одновременно, а вынуждены выполняться один за другим. В браузерах, JavaScript делит ресурсы потока с некоторыми другими инструкциями. Они отличаются от браузера к браузеру, но обычно JavaScript находится в одной очереди с отрисовкой страницы, обновлением стилей, и обработкой действий пользователя (таких как выделение текста и взаимодействие с элементами интерфейса). Выполнение любой из этих команд приостанавливает выполнение других.</p>
-<p>Люди же многозадачные. Вы можете печатать сразу несколькими пальцами, а можете одновременно вести машину и разговаривать. Единственная блокирующая операция — это чихание, когда все текущие действия прекращаются на время чихания. Это раздражает, особенно, когда вы ведете машину и разговариваете. Вы точно не хотите, чтобы ваш код чихал.</p>
-<p>Вероятно, для этого вы использовали события и колбеки. Например, так:</p>
+<p>JavaScript однозадачный, это значит, что два куска кода не могут выполняться одновременно, а вынуждены выполняться один за другим. В браузерах JavaScript разделяет ресурсы потока с некоторыми другими инструкциями. Они отличаются от браузера к браузеру, но обычно JavaScript находится в одной очереди с инструкциями отрисовки страницы, обновления стилей, и обработки действий пользователя (таких как выделение текста и взаимодействие с элементами интерфейса). Выполнение любой из этих команд приостанавливает выполнение других.</p>
+<p>Люди же многозадачные — вы можете печатать сразу несколькими пальцами, а можете одновременно вести машину и разговаривать. Единственная блокирующая операция — это когда вы чихаете, в этот момент все текущие действия временно прекращаются. Это раздражает, особенно, когда вы ведете машину и разговариваете. И уж точно, вы не хотите, чтобы ваш код «чихал».</p>
+<p>Вероятно, раньше вы уже использовали события и колбеки. Например, так:</p>
 
 <pre class="prettyprint">var img1 = document.querySelector('.img-1');
 
@@ -64,7 +64,7 @@ img1.addEventListener('error', function() {
 });</pre>
 
 <p>Ничего сложного! Нашли изображение, добавили пару обработчиков, и JavaScript приостановит выполнение до тех пор, пока один из этих обработчиков не будет вызван.</p>
-<p>К сожалению, в примере выше, возможна ситуация, когда событие произойдет раньше, чем мы начнем его слушать. Есть обходной путь, который использует свойство "complete" элемента image:</p>
+<p>К сожалению, в примере выше, возможна ситуация, когда событие произойдет раньше, чем мы начнем его слушать. Есть обходной путь, который использует свойство <code>complete</code> элемента <code>image</code>:</p>
 
 <pre class="prettyprint">var img1 = document.querySelector('.img-1');
 
@@ -83,11 +83,11 @@ img1.addEventListener('error', function() {
   // что-то пошло не так
 });</pre>
 
-<p>Но это не поможет отловить изображения, ошибка в которых произошла, раньше, чем мы начали слушать событие 'error'. К содалению, DOM не дает нам возможности сделать это. К тому же, этот код загружает только одно изображение, но всё становится гораздо сложнее, если мы хотим узнать, когда будет загружено несколько изображений. </p>
+<p>Но это не поможет в ситуации, если ошибка произошла раньше, чем мы начали слушать событие <code>error</code>. К содалению, DOM не дает нам возможности сделать это. К тому же, этот код загружает только одно изображение, но всё становится гораздо сложнее, если мы хотим узнать, когда будет загружено несколько изображений. </p>
 
 <h2 id="toc-events-not-always-best">События — не панацея</h2>
 
-<p>События отлично подходят для тех случаев, когда событие происходит несколько раз в одном и том же элементе — keyup, touchstart. Используя события, не нужно знать, что происходило до того момента, как вы начали слушать эти события. Но когда дело доходит до асинхронных событий асинхронную загрузку с неопределённым исходом (success/failure), хотелось бы сделать так:</p>
+<p>События отлично подходят для тех случаев, когда событие происходит несколько раз в одном и том же элементе — <code>keyup</code>, <code>touchstart</code>. Используя события, не нужно знать, что происходило до того момента, как вы начали слушать эти события. Но когда дело доходит до обработки асинхронных событий с неопределённым исходом (success/failure), хотелось бы сделать так:</p>
 
 
 <pre class="prettyprint">img1.callThisIfLoadedOrWhenLoaded(function() {
@@ -103,7 +103,7 @@ whenAllTheseHaveLoaded([img1, img2]).callThis(function() {
   // произошла одна или несколько ошибок
 });</pre>
 
-<p>Promises именно так и работают, но названия методов немного более внятные. Если у HTML элемента image был бы метод "ready", возвращающий promise, мы могли бы переписать этот код так:</p>
+<p>Promis'ы именно так и работают, но названия методов немного более внятные. Если у HTML элемента <code>image</code> был бы метод <code>ready</code>, возвращающий promise, мы могли бы переписать этот код так:</p>
 
 <pre class="prettyprint">img1.ready().then(function() {
   // загружено
@@ -121,7 +121,7 @@ Promise.all([img1.ready(), img2.ready()]).then(function() {
 <p>В общем, promises немного похожи на обработчики событий, но:</p>
 
 <ul>
-  <li>Promise может либо успешно выполниться (succeed), либо завершиться с ошибкой (fail). Оно не может выполнить дважды  — либо только success, либо только fail.</li>
+  <li>Promise может либо успешно выполниться (succeed), либо завершиться с ошибкой (failed). Оно не может выполнить дважды  — либо только success, либо только failed.</li>
   <li>Если promise уже успешно выполнился (success) или произошла ошибка (failed), и после этого вы добавляете success/failure обработчик, то соответствующий обработчик вызовется, даже если событие уже произошло</li>
 </ul>
 
@@ -129,14 +129,14 @@ Promise.all([img1.ready(), img2.ready()]).then(function() {
 
 <h2 id="toc-promise-terminology">Терминология</h2>
 
-<p>Когда <a href="https://twitter.com/domenic">Domenic Denicola</a> прочитал первую версию этой статьи. он поставил мне двойку за терминологию. Он заставил меня перечитать <a href="https://github.com/domenic/promises-unwrapping/blob/master/docs/states-and-fates.md">States and Fates</a> 100 раз, и вызвал родителей в школу. Несмотря на это, у меня в голове всё равно всё перемешалось, но вот основные понятия:</p>
+<p>Когда <a href="https://twitter.com/domenic">Domenic Denicola</a> прочитал первую версию этой статьи, он поставил мне двойку за терминологию. Он заставил меня перечитать <a href="https://github.com/domenic/promises-unwrapping/blob/master/docs/states-and-fates.md">States and Fates</a> 100 раз, и вызвал родителей в школу. Несмотря на это, у меня в голове всё равно всё перемешалось, но вот основные понятия:</p>
 
-<p>Promises могут быть:</p>
+<p>Promise'ы могут быть:</p>
 <dl class="inline">
   <dt>fulfilled</dt>
-  <dd>Действие, связанное с promise успешно завершено</dd>
+  <dd>Действие, связанное с promise'ом успешно завершено</dd>
   <dt>rejected</dt>
-  <dd>Действие, связанное с promise завершено с ошибкой</dd>
+  <dd>Действие, связанное с promise'ом завершено с ошибкой</dd>
   <dt>pending</dt>
   <dd>Promise пока не находится ни в одном из состояний: ни fulfilled, ни rejected</dd>
   <dt>settled</dt>
@@ -145,7 +145,7 @@ Promise.all([img1.ready(), img2.ready()]).then(function() {
 
 <p><a href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-promise-objects">В спецификации</a> также используется термин <strong>thenable</strong> для описания promise-подобного объекта, имеющего метод <code>then</code>. Но этот термин напоминает бывшего английского футбольного менеджера <a href="http://en.wikipedia.org/wiki/Terry_Venables">Терри Венейблса</a> поэтому я буду использовать его как можно реже.</p>
 
-<h2 id="toc-javascript-promises">Promises приходят в JavaScript!</h2>
+<h2 id="toc-javascript-promises">Promise'ы приходят в JavaScript!</h2>
 <p>Существует уже достаточно много реализаций promises, например:</p>
 
 <ul>
@@ -155,8 +155,8 @@ Promise.all([img1.ready(), img2.ready()]).then(function() {
   <li><a href="https://github.com/tildeio/rsvp.js">RSVP.js</a></li>
 </ul>
 
-<p>Перечисленные выше и нативные JavaScript promises придерживаются единого стандарта поведения, описанного в спецификации <a href="https://github.com/promises-aplus/promises-spec">Promises/A+</a>. Если вы используете jQuery, то наверняка использовали <a href="http://api.jquery.com/category/deferred-object/">Deferreds</a>. Однако, Deferreds несовместимы с Promise/A+ спецификацией, что делает их <a href="https://thewayofcode.wordpress.com/tag/jquery-deferred-broken/">немного менее удобными</a>. В jQuery есть ещё <a href="http://api.jquery.com/Types/#Promise">тип Promise</a>, но это всего лишь подмножество Deferred с теми же проблемами.</p>
-<p>Несмотря на то, что реализайии promise  придерживаются стандартного поведения, их API немного отличается. Нативные JavaScript promises очень похожи на API из RSVP.js. Вот как создается promise:</p>
+<p>Перечисленные выше и нативные JavaScript promise'ы придерживаются единого стандарта поведения, описанного в спецификации <a href="https://github.com/promises-aplus/promises-spec">Promises/A+</a>. Если вы используете jQuery, то наверняка использовали <a href="http://api.jquery.com/category/deferred-object/">Deferreds</a>. Однако, Deferreds несовместимы с Promise/A+ спецификацией, что делает их <a href="https://thewayofcode.wordpress.com/tag/jquery-deferred-broken/">немного менее удобными</a>. В jQuery есть ещё <a href="http://api.jquery.com/Types/#Promise">тип Promise</a>, но это всего лишь подмножество Deferred с теми же проблемами.</p>
+<p>Несмотря на то, что реализайии promise  придерживаются стандартного поведения, их API немного отличается. Нативные JavaScript promise'ы очень похожи на API из RSVP.js. Вот как создается promise:</p>
 
 <pre class="prettyprint">var promise = new Promise(function(resolve, reject) {
   // код, возможно асинхронный
@@ -169,9 +169,9 @@ Promise.all([img1.ready(), img2.ready()]).then(function() {
   }
 });</pre>
 
-<p>Конструктор принимает один аргумент, колбек с двумя параметрами, resolve и reject. Внутри этого коллбека можно выполнять любые операции (в том числе и асинхронные). Потом вызываешь resolve если всё прошло удачно, или reject в случае ошибки.</p>
-<p>Также как и для "throw" в JavaScript, в reject можно передать необязательный параметр Error. Польза от использования объекта Error в том, что они сохраняют stack trace, тем самым делая отладку более удобной.</p>
-<p>Вот как использовать promise:</p>
+<p>Конструктор принимает один аргумент, колбек с двумя параметрами, <code>resolve</code> и <code>reject</code>. Внутри этого колбека можно выполнять любые операции (в том числе и асинхронные). Потом вызываешь <code>resolve</code> если всё прошло удачно, или <code>reject</code> в случае ошибки.</p>
+<p>Также как и для <code>throw</code> в JavaScript, в reject можно передать необязательный параметр <code>Error</code>. Польза от использования объекта <code>Error</code> в том, что они сохраняют стектрейс, тем самым делая отладку более удобной.</p>
+<p>Вот как использовать promise'ы:</p>
 
 <pre class="prettyprint">promise.then(function(result) {
   console.log(result); // "Stuff worked!"
@@ -179,23 +179,22 @@ Promise.all([img1.ready(), img2.ready()]).then(function() {
   console.log(err); // Error: "It broke"
 });</pre>
 
-<p>"then" takes two arguments, a callback for a success case, and another for the failure case. Both are optional, so you can add a callback for the success or failure case only.</p>
-<p>JavaScript promises started out in the DOM as "Futures", renamed to "Promises", and finally moved into JavaScript. Having them in JavaScript rather than the DOM is great because they'll be available in non-browser JS contexts such as Node.js (whether they make use of them in their core APIs is another question).</p>
-<p>Although they're a JavaScript feature, the DOM isn't afraid to use them. In fact, all new DOM APIs with async success/failure methods will use promises. This is happening already with <a href="https://dvcs.w3.org/hg/quota/raw-file/tip/Overview.html#idl-def-StorageQuota">Quota Management</a>, <a href="http://dev.w3.org/csswg/css-font-loading/#font-face-set-ready">Font Load Events</a>,<a href="https://github.com/slightlyoff/ServiceWorker/blob/cf459d473ae09f6994e8539113d277cbd2bce939/service_worker.ts#L17"> ServiceWorker</a>, <a href="http://webaudio.github.io/web-midi-api/#widl-Navigator-requestMIDIAccess-Promise-MIDIOptions-options">Web MIDI</a>, <a href="https://github.com/whatwg/streams#basereadablestream">Streams</a>, and more.</p>
+<p>Метод <code>then</code> принимает два аргумента, колбек success и колбек failure. Оба необязательные, так что вы сможете решать, передавать или не передавать success и failure.</p>
+<p>Изначально promise'ы назывались Futures, потом были переименованы в Promises, и в итоге появились в JavaScript. А то, что они реализованы в JavaScript, а не в DOM, позволяет использовать их, например, в Node.js.</p>
+<p>Но несмотря на то, что promise'ы — это фишка JavaScript, они могут активно используются в DOM. Все новые асинхронные DOM APIs будут их использовать. Например, <a href="https://dvcs.w3.org/hg/quota/raw-file/tip/Overview.html#idl-def-StorageQuota">Quota Management</a>, <a href="http://dev.w3.org/csswg/css-font-loading/#font-face-set-ready">Font Load Events</a>,<a href="https://github.com/slightlyoff/ServiceWorker/blob/cf459d473ae09f6994e8539113d277cbd2bce939/service_worker.ts#L17"> ServiceWorker</a>, <a href="http://webaudio.github.io/web-midi-api/#widl-Navigator-requestMIDIAccess-Promise-MIDIOptions-options">Web MIDI</a>, <a href="https://github.com/whatwg/streams#basereadablestream">Streams</a>, и многие другие.</p>
 
-<h2 id="toc-browser-support">Browser support &amp; polyfill</h2>
-<p>There are already implementations of promises in browsers today.</p>
-<p>As of Chrome 32 and Opera 19, promises are enabled by default. Alternatively, if you're of the Firefox persuasion, <a href="http://nightly.mozilla.org/">grab their latest nightly</a>, which has <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=918806">partial</a> promises support.</p>
+<h2 id="toc-browser-support">Поддержка в браузерах и polyfill</h2>
+<p>Начиная с Chrome 32 и Opera 19, поддержка  promise'ов включена по умолчанию. В Firefox promise'ы доступны в, <a href="http://nightly.mozilla.org/">ночной сборке</a>, и пока поддерживаются <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=918806">частично</a>.</p>
 
-<p>To bring browsers that lack a complete promises implementation up to spec compliance, or add promises to other browsers and Node.js, check out <a href="https://github.com/jakearchibald/ES6-Promises#readme">the polyfill</a> (2k gzipped).</p>
+<p>Если вы хотите добавить эту поддержку в другие браузеры или Node.js, воспользуйте этот <a href="https://github.com/jakearchibald/ES6-Promises#readme">polyfill</a>.</p>
 
-<h2 id="toc-lib-compatibility">Compatibility with other libraries</h2>
-<p>The JavaScript promises API will treat anything with a <code>then</code> method as promise-like (or <em>thenable</em> in promise-speak <em>*sigh*</em>), so if you use a library that returns a Q promise, that's fine, it'll play nice with the new JavaScript promises.</p>
-<p>Although, as I mentioned, jQuery's Deferreds are a bit… unhelpful. Thankfully you can cast them to standard promises, which is worth doing as soon as possible:</p>
+<h2 id="toc-lib-compatibility">Совместимость с другими библиотеками</h2>
+<p>Нативные JavaScript promise'ы используют метод <code>then</code> , так что если ваша бибилиотека возвращает Q promise, всё должно работать.</p>
+<p>Но, как было отмечено ранее, объект Deferred из jQuery немного другой. Но вы можете привести его к виду, соответствующему спецификации с помощью метода <code>cast</code>:</p>
 
 <pre class="prettyprint">var jsPromise = Promise.resolve($.ajax('/whatever.json'));</pre>
 
-<p>Here, jQuery's <code>$.ajax</code> returns a Deferred. Since it has a "then" method, <code>Promise.resolve</code> can turn it into a JavaScript promise. However, sometimes deferreds pass multiple arguments to their callbacks, eg:</p>
+<p>Здесь, метод jQuery <code>$.ajax</code> возвращает Deferred. Но так как у него есть метод <code>Promise.resolve</code> его можно преобразовать в нативный promise. Тем не менее, иногда deferred'ы передают слишком много аргументов в колбеки:</p>
 
 <pre class="prettyprint">var jqDeferred = $.ajax('/whatever.json');
 
@@ -205,7 +204,7 @@ jqDeferred.then(function(response, statusText, xhrObj) {
   // ...
 });</pre>
 
-<p>Whereas JS promises ignore all but the first:</p>
+<p>А нативные promise'ы игнорируют все, кроме первого:</p>
 
 <pre class="prettyprint">jsPromise.then(function(response) {
   // ...
@@ -213,74 +212,74 @@ jqDeferred.then(function(response, statusText, xhrObj) {
   // ...
 });</pre>
 
-<p>…thankfully this is usually what you want, or at least gives you access to what you want. Also, be aware that jQuery doesn't follow the convention of passing Error objects into rejections.</p>
+<p>Кроме того, jQuery не следует общему правилу и не передает объект <code>Error</code> в колбеки.</p>
 
-<h2 id="toc-coding-with-promises">Complex async code made easier</h2>
-<p>Right, let's code some things. Say we want to:</p>
+<h2 id="toc-coding-with-promises">Асинхронность становится проще</h2>
+<p>OK, напишем что-нибудь. Например мы хотим:</p>
 
 <ol>
-  <li>Start a spinner to indicate loading</li>
-  <li>Fetch some JSON for a story, which gives us the title, and urls for each chapter</li>
-  <li>Add title to the page</li>
-  <li>Fetch each chapter</li>
-  <li>Add the story to the page</li>
-  <li>Stop the spinner</li>
+  <li>Показать индикатор процесса загрузки</li>
+  <li>Получить объект рассказа в формате JSON, содержащий название и URL каждой главы</li>
+  <li>Добвыить заголовок на страницу</li>
+  <li>Загрузить все главы</li>
+  <li>Добавить главы на страницу</li>
+  <li>Убрать индикатор загрузки</li>
 </ol>
 
-<p>…but also tell the user if something went wrong along the way. We'll want to stop the spinner at that point too, else it'll keep on spinning, get dizzy, and crash into some other UI.</p>
-<p>Of course, you wouldn't use JavaScript to deliver a story, <a href="http://jakearchibald.com/2013/progressive-enhancement-is-faster/">serving as HTML is faster</a>, but this pattern is pretty common when dealing with APIs: Multiple data fetches, then do something when it's all done.</p>
-<p>To start with, let's deal with fetching data from the network:</p>
+<p>…а ещё нужно нотифицировать пользователя, если что-то пойдет не так. В этом случае тоже нужно будет убрать индикатор загрузки.</p>
+<p>Конечно, быстрее было бы, <a href="http://jakearchibald.com/2013/progressive-enhancement-is-faster/">вернуть всё в HTML</a>, но наш подход хорош.</p>
 
-<h2 id="toc-promisifying-xmlhttprequest">Promisifying XMLHttpRequest</h2>
+<p>Начнем, сначала нужно получить данные из сети:</p>
 
-<p>Old APIs will be updated to use promises, if it's possible in a backwards compatible way. <code>XMLHttpRequest</code> is a prime candidate, but in the mean time let's write a simple function to make a GET request:</p>
+<h2 id="toc-promisifying-xmlhttprequest">Promise'ы и XMLHttpRequest</h2>
+
+<p>Старый API постепенно переписывается и в него добавляется поддержка promise'ов. <code>XMLHttpRequest</code> — первый кандидат, а пока давайте напишем простую функцию отправляющую GET запрос:</p>
 
 <pre class="prettyprint">function get(url) {
-  // Return a new promise.
+  // Вернем promise
   return new Promise(function(resolve, reject) {
-    // Do the usual XHR stuff
+    // Используем XHR как обычно
     var req = new XMLHttpRequest();
     req.open('GET', url);
 
     req.onload = function() {
-      // This is called even on 404 etc
-      // so check the status
+      // этот обработчик срабатывает всегда (даже для 404)
+      // поэтому проверяем статус
       if (req.status == 200) {
-        // Resolve the promise with the response text
+        // Успешно завершаем promise и передаем текст ответа 
         resolve(req.response);
       }
       else {
-        // Otherwise reject with the status text
-        // which will hopefully be a meaningful error
+        // завершаем promise с ошибкой и передаем текст ошибки
         reject(Error(req.statusText));
       }
     };
 
-    // Handle network errors
+    // отслеживаем ошибки сети
     req.onerror = function() {
       reject(Error("Network Error"));
     };
 
-    // Make the request
+    // отправляем запрос
     req.send();
   });
 }</pre>
 
-<p>Now let's use it:</p>
+<p>Теперь используем эту функцию:</p>
 
 <pre class="prettyprint">get('story.json').then(function(response) {
-  console.log("Success!", response);
+  console.log("Успешно!", response);
 }, function(error) {
-  console.error("Failed!", error);
+  console.error("Ошибка!", error);
 });</pre>
 
-<p><span class="live-example get-example"><a href="story.json">Click here to see that in action</a>, check the console in DevTools to see the result.</span> Now we can make HTTP requests without manually typing <code>XMLHttpRequest</code>, which is great, because the less I have to see the infuriating camel-casing of <code>XMLHttpRequest</code>, the happier my life will be.</p>
+<p><span class="live-example get-example"><a href="story.json">Нажмите сюда, чтобы посмотреть в действии</a>, откройте консоль в DevTools, чтобы увидеть результат.</span> Теперь мы можем отправлять HTTP запросы без постоянного написания <code>XMLHttpRequest</code>, что, само по себе, очень удобно.</p>
 
-<h2 id="toc-chaining">Chaining</h2>
-<p>"then" isn't the end of the story, you can chain "then"s together to transform values or run additional async actions one after another.</p>
+<h2 id="toc-chaining">Цепочки вызовов</h2>
+<p>Метод <code>then</code> – это ещё не всё. Вы можете объединить вызовы <code>then</code> вместе для конвейерного изменения значений или последовательного выполнения асинхронных задач.</p>
 
-<h3 id="toc-transforming-values">Transforming values</h3>
-<p>You can transform values simply by returning the new value:</p>
+<h3 id="toc-transforming-values">Конвейерное изменение значений</h3>
+<p>Вы можете изменять значение просто возвращая его из promise'а:</p>
 
 <pre class="prettyprint">var promise = new Promise(function(resolve, reject) {
   resolve(1);
@@ -293,47 +292,47 @@ promise.then(function(val) {
   console.log(val); // 3
 });</pre>
 
-<p>As a practical example, let's go back to:</p>
+<p>НУ, и более практический пример:</p>
 
 <pre class="prettyprint">get('story.json').then(function(response) {
-  console.log("Success!", response);
+  console.log("Успешно выполнено!", response);
 });</pre>
 
-<p>The response is JSON, but we're currently receiving it as plain text. We could alter our get function to use the JSON <code><a href="https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#responseType">responseType</a></code>, but we could also solve it in promises land:</p>
+<p>Сервер ответил в формате JSON, но передал ответ как text/plain. Мы можем заставить функцию возвращать JSON объект, выставив соответствующий <code><a href="https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#responseType">responseType</a></code>, а можем решить это с помощью promise'ов:</p>
 
 <pre class="prettyprint">get('story.json').then(function(response) {
   return JSON.parse(response);
 }).then(function(response) {
-  console.log("Yey JSON!", response);
+  console.log("Ура, JSON!", response);
 });</pre>
 
-<p>Since <code>JSON.parse</code> takes a single argument and returns a transformed value, we can make a shortcut:</p>
+<p>Так как функция <code>JSON.parse</code> принимает один агрумент и возвращает измененное значение, мы можем сократить этот код:</p>
 
 <pre class="prettyprint">get('story.json').then(JSON.parse).then(function(response) {
-  console.log("Yey JSON!", response);
+  console.log("Ура, JSON!", response);
 });</pre>
 
-<p><span class="live-example json-example"><a href="story.json">Click here to see that in action</a>, check the console in DevTools to see the result.</span> In fact, we could make a <code>getJSON</code> function really easily:</p>
+<p><span class="live-example json-example"><a href="story.json">Посмотреть демо</a>, откройте консоль DevTools чтобы увидеть результат.</span> Вообще, можем написать функцию <code>getJSON</code>:</p>
 
 <pre class="prettyprint">function getJSON(url) {
   return get(url).then(JSON.parse);
 }</pre>
 
-<p><code>getJSON</code> still returns a promise, one that fetches a url then parses the response as JSON.</p>
+<p><code>getJSON</code> возвращает promise, который вытягивает данные по url, потом парсит данные и возвращает JSON объект.</p>
 
-<h3 id="toc-promises-queues">Queuing asynchronous actions</h3>
-<p>You can also chain "then"s to run async actions in sequence.</p>
-<p>When you return something from a "then" callback, it's a bit magic. If you return a value, the next "then" is called with that value. However, if you return something promise-like, the next "then" waits on it, and is only called when that promise settles (succeeds/fails). For example:</p>
+<h3 id="toc-promises-queues">Последовательное выполнение асинхронных задач</h3>
+<p>Также, мы можем связывать вызовы <code>then</code> в цепочку, чтобы последовательно выполнять асинхронные задачи.</p>
+<p>Когда вы возвращаете что-то из колбека <code>then</code>, происходит немного магии. Если вы возвращаете значеие, следующий <code>then</code> в цепочке вызовется с этим значением. Но если вы возвращаете promise, то следующий <code>then</code> будет ждать выполнения этого promise'а, и будет вызван только тогда, когда promise разрешится (succeeds/fails). Например:</p>
 
 <pre class="prettyprint">getJSON('story.json').then(function(story) {
   return getJSON(story.chapterUrls[0]);
 }).then(function(chapter1) {
-  console.log("Got chapter 1!", chapter1);
+  console.log("Загрузили главу 1!", chapter1);
 });</pre>
 
-<p>Here we make an async request to "story.json", which gives us a set of URLs to request, then we request the first of those. This is when promises really start to stand out from simple callback patterns.
+<p>Здесь мы делаем асинхронный запрос к <code>story.json</code>, который возвращает нам URL адреса для запросов, после чего мы делаем запрос к первому из них. Намного круче, чем обычные колбеки.
 
-  You could even make a shortcut method to get chapters:</p>
+ Напишем функцию получения текста главы:</p>
 
 <pre class="prettyprint">var storyPromise;
 
@@ -345,7 +344,7 @@ function getChapter(i) {
   })
 }
 
-// and using it is simple:
+// дальше используем вот так:
 getChapter(0).then(function(chapter) {
   console.log(chapter);
   return getChapter(1);
@@ -353,34 +352,34 @@ getChapter(0).then(function(chapter) {
   console.log(chapter);
 });</pre>
 
-<p>We don't download "story.json" until <code>getChapter</code> is called, but the next time(s) <code>getChapter</code> is called we reuse the story promise, so story.json is only fetched once. Yay Promises!</p>
+<p>Мы не загружаем <code>story.json</code> до тех пор пока метод <code>getChapter</code> не будет вызван, но в следующие разы, когда <code>getChapter</code> будет вызван, мы просто переиспользуем storyPromise, и, таким образом, <code>story.json</code> будет загружен только один раз.</p>
 
-<h2 id="toc-error-handling">Error handling</h2>
-<p>As we saw earlier, "then" takes two arguments, one for success, one for failure (or fulfill and reject, in promises-speak):</p>
+<h2 id="toc-error-handling">Обработка ошибок</h2>
+<p>Как мы увидели ранее, <code>then</code> принимает два аргумента, один (success/fulfill) для успешного завершения, другой (failure/reject) для ошибочного:</p>
 
 <pre class="prettyprint">get('story.json').then(function(response) {
-  console.log("Success!", response);
+  console.log("Успешно!", response);
 }, function(error) {
-  console.log("Failed!", error);
+  console.log("Ошибка!", error);
 });</pre>
 
-<p>You can also use "catch":</p>
+<p>Также можно использовать <code>catch</code>:</p>
 
 <pre class="prettyprint">get('story.json').then(function(response) {
-  console.log("Success!", response);
+  console.log("Успешно!", response);
 }).catch(function(error) {
-  console.log("Failed!", error);
+  console.log("Ошибка!", error);
 });</pre>
 
-<p>There's nothing special about "catch", it's just sugar for <code>then(undefined, func)</code>, but it's more readable. Note that the two code examples above do not behave the same, the latter is equivalent to:</p>
+<p>Метод <code>catch</code>, это всего лишь более читаемый синтаксический сахар для <code>then(undefined, func)</code>. Заметьте, что два примера кода выше немного разные, последний эквивалентен:</p>
 
 <pre class="prettyprint">get('story.json').then(function(response) {
-  console.log("Success!", response);
+  console.log("Успешно!", response);
 }).then(undefined, function(error) {
-  console.log("Failed!", error);
+  console.log("Ошибка!", error);
 });</pre>
 
-<p>The difference is subtle, but extremely useful. Promise rejections skip forward to the next "then" with a rejection callback (or "catch", since it's equivalent). With <code>then(func1, func2)</code>, <code>func1</code> or <code>func2</code> will be called, never both. But with <code>then(func1).catch(func2)</code>, both will be called if <code>func1</code> rejects, as they're separate steps in the chain. Take the following:</p>
+<p>Эта небольшая разница, открывает широкие возможности. Отказы promise'ов проскакивают до следующего <code>then</code> с указанным failed колбеком (или до <code>catch</code>, так как это одно и то же). Для ситуации <code>then(func1, func2)</code>, будет вызвана только одна из функций <code>func1</code> или <code>func2</code>, но не обе. Но для случая <code>then(func1).catch(func2)</code>, функция <code>func2</code> может быть вызвана, если в функции <code>func1</code> случится ошибка, так как это разные шаги в цепочке. Посмотрите на этот пример:</p>
 
 <pre class="prettyprint">asyncThing1().then(function() {
   return asyncThing2();
@@ -393,12 +392,12 @@ getChapter(0).then(function(chapter) {
 }, function(err) {
   return asyncRecovery2();
 }).catch(function(err) {
-  console.log("Don't worry about it");
+  console.log("Не беспокойся об этом");
 }).then(function() {
-  console.log("All done!");
+  console.log("Всё готово!");
 });</pre>
 
-<p>The flow above is very similar to normal JavaScript try/catch, errors that happen within a "try" go immediately to the "catch" block. Here's the above as a flowchart (because I love flowcharts):</p>
+<p>Это очень похоже на обычный try/catch в JavaScript. Если в блоке <code>try</code> произойдет ошибка, то мы сразу попадем в блок <code>catch</code>. Вот блок-схема иллюстрирующая код выше (потому что я люблю блок-схемы):</p>
 
 <div style="max-width: 495px; margin: 10px auto">
   <div style="position: relative; padding-top: 93%;">
@@ -406,53 +405,53 @@ getChapter(0).then(function(chapter) {
   </div>
 </div>
 
-<p>Follow the green lines for promises that fulfill, or the red for ones that reject.</p>
+<p>Зеленые стрелки — удачный сценарий, красные — ошибочный.</p>
 
-<h3 id="toc-exceptions-and-promises">JavaScript exceptions and promises</h3>
-<p>Rejections happen when a promise is explicitly rejected, but also implicitly if an error is thrown in the constructor callback:</p>
+<h3 id="toc-exceptions-and-promises">Исключения JavaScript и promise'ы</h3>
+<p>Ошибочный сценарий возникает внутри promise не только когда был явно вызван <code>reject</code>, но ещё и неявно, когда внутри переданного колбека было сгенерировано исключение:</p>
 
 <pre class="prettyprint">var jsonPromise = new Promise(function(resolve, reject) {
-  // JSON.parse throws an error if you feed it some
-  // invalid JSON, so this implicitly rejects:
-  resolve(JSON.parse("This ain't JSON"));
+  // JSON.parse сгенерирует ошибку, если ему передать некорректный JSON
+  // в таком случае произойдет неявный reject:
+  resolve(JSON.parse("Это некорректный JSON"));
 });
 
 jsonPromise.then(function(data) {
-  // This never happens:
-  console.log("It worked!", data);
+  // никогда не произойдет
+  console.log("Работает!", data);
 }).catch(function(err) {
-  // Instead, this happens:
-  console.log("It failed!", err);
+  // произойдет
+  console.log("Не работает!", err);
 });</pre>
 
-<p>This means it's useful to do all your promise-related work inside the promise constructor callback, so errors are automatically caught and become rejections.</p>
-<p>The same goes for errors thrown in "then" callbacks.</p>
+<p>Это значит, что если делать всю работу внутри переданного колбека, то все произошедшие ошибки автоматически приведут к reject.</p>
+<p>Это же правило работает для колбеков, передвнных в метод <code>then</code>.</p>
 
 <pre class="prettyprint">get('/').then(JSON.parse).then(function() {
-  // This never happens, '/' is an HTML page, not JSON
-  // so JSON.parse throws
-  console.log("It worked!", data);
+  // никогда не произойдет, так как '/' это HTML страница, а не JSON
+  // JSON.parse сгенерирует ошибку 
+  console.log("Работает!", data);
 }).catch(function(err) {
-  // Instead, this happens:
-  console.log("It failed!", err);
+  // произойдет
+  console.log("Не работает", err);
 });</pre>
 
-<h3 id="toc-errors-in-practice">Error handling in practice</h3>
+<h3 id="toc-errors-in-practice">Обработка ощибок на практике</h3>
 
-<p>With our story and chapters, we can use catch to display an error to the user:</p>
+<p>В случае с нашей историей, разбитой на главы, мы можем использовать catch, чтобы оповестить пользователя о произошедшей ошибке:</p>
 
 <pre class="prettyprint">getJSON('story.json').then(function(story) {
   return getJSON(story.chapterUrls[0]);
 }).then(function(chapter1) {
   addHtmlToPage(chapter1.html);
 }).catch(function() {
-  addTextToPage("Failed to show chapter");
+  addTextToPage("Невозможно загрузить главу");
 }).then(function() {
   document.querySelector('.spinner').style.display = 'none';
 });</pre>
 
-<p>If fetching <code>story.chapterUrls[0]</code> fails (eg http 500 or user is offline), it'll skip all following success callbacks, which includes the one in <code>getJSON</code> which tries to parse the response as JSON, and also skips the callback that adds chapter1.html to the page. Instead it moves onto the catch callback. As a result, "Failed to show chapter" will be added to the page if any of the previous actions failed.</p>
-<p>Like JavaScript's try/catch, the error is caught and subsequent code continues, so the spinner is always hidden, which is what we want. The above becomes a non-blocking async version of:</p>
+<p>Если процесс загрузки <code>story.chapterUrls[0]</code> не удастся (например, сервер вернет ошибку 500 или отсутствует подключени к сети), то выполнение функции пропустит все колбеки success. В этом случае не выполнится' функция <code>getJSON</code>, которая парсит JSON. Также не выполнится функция добавляющая текст chapter1.html на страницу. Вместо этого, управление сразу передастся в колбек <code>catch</code>. В итоге, на страницу будет добавлен текст "Невозможно загрузить главу", если в любой предыдущей функции произойдет ошибка.</p>
+<p>Как и в случае с обычным try/catch, ошибка будет перехвачена, и код, скрывающий индикатор загрузки, выполнится, что нам и нужно. Вот как выглядела бы блокирующая версия этого кода:</p>
 
 <pre class="prettyprint">try {
   var story = getJSONSync('story.json');
@@ -460,25 +459,25 @@ jsonPromise.then(function(data) {
   addHtmlToPage(chapter1.html);
 }
 catch (e) {
-  addTextToPage("Failed to show chapter");
+  addTextToPage("Невозможно загрузить главу");
 }
 
 document.querySelector('.spinner').style.display = 'none';</pre>
 
-<p>You may want to "catch" simply for logging purposes, without recovering from the error. To do this, just rethrow the error. We could do this in our <code>getJSON</code> method:</p>
+<p>Можно также использовать <code>catch</code> только для вывода ошибок. Для этого нужно выполнить свой код (вывод текста ошибки) и заново сгенерировать ошибку. Вот как мы можем это сделать в функции <code>getJSON</code>:</p>
 
 <pre class="prettyprint">function getJSON(url) {
   return get(url).then(JSON.parse).catch(function(err) {
-    console.log("getJSON failed for", url, err);
+    console.log("В getJSON произошла ощибка ", url, err);
     throw err;
   });
 }</pre>
 
-<p>So we've managed to fetch one chapter, but we want them all. Let's make that happen.</p>
+<p>Итак мы успешно загрузили одну главу. Настало время загрузить остальные.</p>
 
-<h2 id="toc-parallelism-sequencing">Parallelism and sequencing - Getting the best of both</h2>
+<h2 id="toc-parallelism-sequencing">Параллельно и последовательно - выбираем лучшее</h2>
 
-<p>Thinking async isn't easy. If you're struggling to get off the mark, try writing the code as if it were synchronous. In this case:</p>
+<p>Думать асинхронно нелегко. Если вы зашли в тупик, пишите код так, как будто он синхронный:</p>
 
 <pre class="prettyprint">try {
   var story = getJSONSync('story.json');
@@ -489,52 +488,52 @@ document.querySelector('.spinner').style.display = 'none';</pre>
     addHtmlToPage(chapter.html);
   });
 
-  addTextToPage("All done");
+  addTextToPage("Готово");
 }
 catch (err) {
-  addTextToPage("Argh, broken: " + err.message);
+  addTextToPage("Ошибка: " + err.message);
 }
 
 document.querySelector('.spinner').style.display = 'none';</pre>
 
-<p>That works (<a href="sync-example.html">see example</a>)! But it's sync and locks up the browser while things download. To make this work async we use "then" to make things happen one after another.</p>
+<p>Это будет работать (<a href="sync-example.html">смотреть демо</a>)! Но этот код синхронный и блокирует выполнение пока данные загружаются. Чтобы добавить асинхронности, используем метод <code>then</code>:</p>
 
 <pre class="prettyprint">getJSON('story.json').then(function(story) {
   addHtmlToPage(story.heading);
 
-  // TODO: for each url in story.chapterUrls, fetch &amp; display
+  // TODO: для каждого url из story.chapterUrls, загружаем и показываем
 }).then(function() {
-  // And we're all done!
-  addTextToPage("All done");
+  // всё готово
+  addTextToPage("Готово");
 }).catch(function(err) {
-  // Catch any error that happened along the way
-  addTextToPage("Argh, broken: " + err.message);
+  // ловим любые ошибки
+  addTextToPage("Ошибка: " + err.message);
 }).then(function() {
-  // Always hide the spinner
+  // всегда скрываем индикатор
   document.querySelector('.spinner').style.display = 'none';
 });</pre>
 
-<p>But how can we loop through the chapter urls and fetch them in order? This <strong>doesn't work</strong>:</p>
+<p>Но как же получить все главы в нужном порядке? Так <strong>не работает</strong>:</p>
 
 <pre class="prettyprint">story.chapterUrls.forEach(function(chapterUrl) {
-  // Fetch chapter
+  // получаем главу
   getJSON(chapterUrl).then(function(chapter) {
-    // and add it to the page
+    // добавляем на страницу
     addHtmlToPage(chapter.html);
   });
 });</pre>
 
-<p>"forEach" isn't async-aware, so our chapters would appear in whatever order they download, which is basically how Pulp Fiction was written. This isn't Pulp Fiction, so let's fix it…</p>
+<p><code>forEach</code> ничего не знает об асинхронности, поэтому наши главы появятся в произвольном порядке по мере загрузки. Нам же не нужна статья в стиле «Криминального чтива», давайте поправим…</p>
 
-<h3 id="toc-creating-sequences">Creating a sequence</h3>
-<p>We want to turn our <code>chapterUrls</code> array into a sequence of promises. We can do that using "then":</p>
+<h3 id="toc-creating-sequences">Создание очереди выполнения</h3>
+<p>Чтобы превратить массив <code>chapterUrls</code> в очередь promise'ов, используем уже известный метод <code>then</code>:</p>
 
-<pre class="prettyprint">// Start off with a promise that always resolves
+<pre class="prettyprint">// Создадим promise, который всегда разрешается успешно
 var sequence = Promise.resolve();
 
-// Loop through our chapter urls
+// пробегаем по все главам
 story.chapterUrls.forEach(function(chapterUrl) {
-  // Add these actions to the end of the sequence
+  // и добавляем эти действия в конец очереди
   sequence = sequence.then(function() {
     return getJSON(chapterUrl);
   }).then(function(chapter) {
@@ -542,14 +541,14 @@ story.chapterUrls.forEach(function(chapterUrl) {
   });
 });</pre>
 
-<p>This is the first time we've seen <code>Promise.resolve</code>, which creates a promise that resolves to whatever value you give it. If you pass it an instance of <code>Promise</code> it'll simply return it (<strong>note:</strong> this is a change to the spec that some implementations don't yet follow). If you pass it something promise-like (has a 'then' method), it creates a genuine <code>Promise</code> that fulfills/rejects in the same way. If you pass in any other value, eg <code>Promise.resolve('Hello')</code>, it creates a promise that fulfills with that value. If you call it with no value, as above, it fulfills with "undefined".</p>
+<p>Здесь мы в первый раз увидели метод <code>Promise.resolve</code>, который успешно выполнится с любым переданным ему значением. Если же передать ему что-то промисообразное (имеющее метод <code>then</code>), то будет возвращен новый <code>promise</code>. Если передать, например <code>Promise.resolve('Hello')</code>, будет создан <code>promise</code>, который успешно разрешится с этим значением. Если вызвать этот метод без параметров, то <code>promise</code> успешно разрешится со значением <code>undefined</code>.</p>
 
-<p>There's also <code>Promise.reject(val)</code>, which creates a promise that rejects with the value you give it (or undefined).</p>
-<p>We can tidy up the above code using <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/Reduce">array.reduce</a></code>:</p>
+<p>Также есть метод <code>Promise.reject(val)</code>, который создает <code>promise</code>, который будет отклонён с переданным значением (или <code>undefined</code>)</p>
+<p>С использованием <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/Reduce">array.reduce</a></code> наш код станет немного изящнее:</p>
 
-<pre class="prettyprint">// Loop through our chapter urls
+<pre class="prettyprint">// пробегаем по списку глав
 story.chapterUrls.reduce(function(sequence, chapterUrl) {
-  // Add these actions to the end of the sequence
+  // добавляем все действия в очередь
   return sequence.then(function() {
     return getJSON(chapterUrl);
   }).then(function(chapter) {
@@ -557,117 +556,113 @@ story.chapterUrls.reduce(function(sequence, chapterUrl) {
   });
 }, Promise.resolve());</pre>
 
-<p>This is doing the same as the previous example, but doesn't need the separate "sequence" variable. Our reduce callback is called for each item in the array. "sequence" is <code>Promise.resolve()</code> the first time around, but for the rest of the calls "sequence" is whatever we returned from the previous call. <code>array.reduce</code> is really useful for boiling an array down to a single value, which in this case is a promise.</p>
-<p>Let's put it all together…</p>
+<p>Этот код делает то же самое, что и предыдущий пример, но здесь не требуется выделять отдельную переменную <code>sequence</code> для очереди. Колбэк вызовется для каждого элемента массива, а результат будет накапливаться в переменной <code>sequence</code>, которая изначально была проинициализирована методом <code>Promise.resolve()</code>. При каждом вызове колбэка ему передаётся результат предыдущего вызова. <code>array.reduce</code> удобно использовать, когда необходимо собрать в одной переменной, например, в promise'e.</p>
+<p>Теперь соберем всё вместе…</p>
 
 <pre class="prettyprint">getJSON('story.json').then(function(story) {
   addHtmlToPage(story.heading);
 
   return story.chapterUrls.reduce(function(sequence, chapterUrl) {
-    // Once the last chapter's promise is done…
+    // Как только глава будет загружена
     return sequence.then(function() {
-      // …fetch the next chapter
+      // загрузим следующую
       return getJSON(chapterUrl);
     }).then(function(chapter) {
-      // and add it to the page
+      // и добавим на страницу
       addHtmlToPage(chapter.html);
     });
   }, Promise.resolve());
 }).then(function() {
-  // And we're all done!
-  addTextToPage("All done");
+  // всё готово
+  addTextToPage("Готово");
 }).catch(function(err) {
-  // Catch any error that happened along the way
-  addTextToPage("Argh, broken: " + err.message);
+  // ловим любые ошибки
+  addTextToPage("Ошибка: " + err.message);
 }).then(function() {
-  // Always hide the spinner
+  // всегда скрываем индикатор
   document.querySelector('.spinner').style.display = 'none';
 });</pre>
 
-<p>And there we have it (<a href="async-example.html">see example</a>), a fully async version of the sync version. But we can do better. At the moment our page is downloading like this:</p>
+<p>И всё (<a href="async-example.html">смотри демо</a>), мы написали полностью асинхронный код. Но можем сделать ещё лучше. Сейчас страница грузится так:</p>
 
 <figure>
   <img src="promise1.gif">
 </figure>
 
-<p>Browsers are pretty good at downloading multiple things at once, so we're losing performance by downloading chapters one after the other. What we want to do is download them all at the same time, then process them when they've all arrived. Thankfully there's an API for this:</p>
+<p>Браузеры могут выполнять несколько запросов одновременно, так что мы немного теряем в производительности, загружая главы последовательно. Мы же хотим загрузить их одновременно, а затем, по окончании загрузки, обработать их. К счастью, для этого тоже есть удобный API:</p>
 
 <pre class="prettyprint">Promise.all(arrayOfPromises).then(function(arrayOfResults) {
   //...
 });</pre>
 
-<p><code>Promise.all</code> takes an array of promises and creates a promise that fulfills when all of them successfully complete. You get an array of results (whatever the promises fulfilled to) in the same order as the promises you passed in.</p>
+<p><code>Promise.all</code> принимает массив promise'ов и создает новый promise который выполнится, когда выполнятся переданные ему promise'ы. В результате, вы получите массив результатов promise'ов в том порядке, в котором они находились в массиве.</p>
 
 <pre class="prettyprint">getJSON('story.json').then(function(story) {
   addHtmlToPage(story.heading);
 
-  // Take an array of promises and wait on them all
+  // передаем массив promise'ов и ждем выполнения всех
   return Promise.all(
-    // Map our array of chapter urls to
-    // an array of chapter json promises
+    // получаем данные для каждого url
     story.chapterUrls.map(getJSON)
   );
 }).then(function(chapters) {
-  // Now we have the chapters jsons in order! Loop through…
+  // мы получили текст всех глав
   chapters.forEach(function(chapter) {
-    // …and add to the page
+    // добавим их на страницу
     addHtmlToPage(chapter.html);
   });
-  addTextToPage("All done");
+  addTextToPage("Готово");
 }).catch(function(err) {
-  // catch any error that happened so far
-  addTextToPage("Argh, broken: " + err.message);
+  // ловим любые ошибки
+  addTextToPage("Ошибка: " + err.message);
 }).then(function() {
   document.querySelector('.spinner').style.display = 'none';
 });</pre>
 
-<p>Depending on connection, this can be seconds faster than loading one-by-one (<a href="async-all-example.html">see example</a>), and it's less code than our first try. The chapters can download in whatever order, but they appear on screen in the right order.</p>
+<p>Мы выиграли немного времени (<a href="async-all-example.html">смотри демо</a>) и сократили количество строк кода. Главы могут быть загружены в в любой последовательности, но на экране появятся в правильном порядке.</p>
 
 <figure>
   <img src="promise2.gif">
 </figure>
 
-<p>However, we can still improve perceived performance. When chapter one arrives we should add it to the page. This lets the user start reading before the rest of the chapters have arrived. When chapter three arrives, we wouldn't add it to the page because the user may not realise chapter two is missing. When chapter two arrives, we can add chapters two and three, etc etc.</p>
-<p>To do this, we fetch JSON for all our chapters at the same time, then create a sequence to add them to the document:</p>
+<p>Однако, мы можем ещё улучшить этот пример. Когда первая глава будет загружена, мы должны добавить её на страницу, чтобы пользователь начал читать, не дожидаясь остальные главы. Но, например, когда будет загружена третья глава, мы не должны добавлять её на страницу, так как предыдущие главы еще не загрузились.</p>
+<p>Чтобы сделать это, будем получать JSON всех глав одновременно, а потом создадим очередь для добавления их на страницу:</p>
 
 <pre class="prettyprint">getJSON('story.json').then(function(story) {
   addHtmlToPage(story.heading);
 
-  // Map our array of chapter urls to
-  // an array of chapter json promises.
-  // This makes sure they all download parallel.
+  // получаем данные для каждого url
+  // они будут загружаться параллельно
   return story.chapterUrls.map(getJSON)
     .reduce(function(sequence, chapterPromise) {
-      // Use reduce to chain the promises together,
-      // adding content to the page for each chapter
+      // используем метод reduce чтобы собрать promise'ы вместе
       return sequence.then(function() {
-        // Wait for everything in the sequence so far,
-        // then wait for this chapter to arrive.
+        // и запускаем обработку каждого раздела
         return chapterPromise;
       }).then(function(chapter) {
         addHtmlToPage(chapter.html);
       });
     }, Promise.resolve());
 }).then(function() {
-  addTextToPage("All done");
+  addTextToPage("Готово");
 }).catch(function(err) {
-  // catch any error that happened along the way
-  addTextToPage("Argh, broken: " + err.message);
+  // ловим любые ошибки
+  addTextToPage("Ошибка: " + err.message);
 }).then(function() {
   document.querySelector('.spinner').style.display = 'none';
 });</pre>
 
-<p>And there we go (<a href="async-best-example.html">see example</a>), the best of both! It takes the same amount of time to deliver all the content, but the user gets the first bit of content sooner.</p>
+<p>Вот и всё (<a href="async-best-example.html">смотри демо</a>), идеальный код! Сначала загружаем все главы параллельно, , потом обрабатываем каждую в нужном порядке.</p>
 
 <figure>
   <img src="promise3.gif">
 </figure>
 
-<p>In this trivial example, all of the chapters arrive around the same time, but the benefit of displaying one at a time will be exaggerated with more, larger chapters.</p>
+<p>В этом примере, главы достаточно маленькие, но если их будет больше, то разница будет более заметна.</p>
 
-<p>Doing the above with <a href="https://gist.github.com/jakearchibald/0e652d95c07442f205ce">Node.js-style callbacks or events</a> is around double the code, but more importantly isn't as easy to follow. However, this isn't the end of the story for promises, when combined with other ES6 features they get even easier…</p>
+<p>Если бы мы писали этот код <a href="https://gist.github.com/jakearchibald/0e652d95c07442f205ce">в стиле Node.js c колбеками</a> кода было бы больше, а понимать его было бы сложнее. Однако, это ещё не всё. Используя promise'ы вместе с другими возможностями ES6 features всё можеn cnfnm ещё проще…</p>
 
-<h2 class="toc-generators">Bonus round: Promises and Generators</h2>
+<h2 class="toc-generators">Бонус: Promise'ы и генераторы</h2>
 
 <p>This next bit involves a whole bunch of new ES6 features, but it's not something you need to understand to use promises in your code today. Treat it like a movie trailer for some upcoming blockbuster features.</p>
 <p>ES6 also gives us <a href="http://wiki.ecmascript.org/doku.php?id=harmony:generators">generators</a>, which allow functions to exit at a particular point, like "return", but later resume from the same point and state. Eg:</p>
